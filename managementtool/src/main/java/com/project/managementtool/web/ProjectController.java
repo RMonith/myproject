@@ -1,6 +1,7 @@
 package com.project.managementtool.web;
 
 import com.project.managementtool.domain.Project;
+import com.project.managementtool.services.MapValidationService;
 import com.project.managementtool.services.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,17 +22,32 @@ public class ProjectController {
     @Autowired
     private ProjectService projectService;
 
+    @Autowired
+    private MapValidationService mapValidationService;
+
     @PostMapping("")
     public ResponseEntity<?> createNewProject(@Valid @RequestBody Project project, BindingResult result){
 
-        if(result.hasErrors()){
-            Map<String,String> errorMap = new HashMap<>();
-            for(FieldError error : result.getFieldErrors()){
-                errorMap.put(error.getField(),error.getDefaultMessage());
-            }
-            return new ResponseEntity<Map<String,String>>(errorMap, HttpStatus.BAD_REQUEST);
-        }
+        ResponseEntity<?>errorMap = mapValidationService.MapValidationService(result);
+        if(errorMap!=null)
+            return errorMap;
         Project project1 = projectService.saveOrUpdate(project);
         return new ResponseEntity<Project>(project, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/{projectId}")
+    public ResponseEntity<?> getProjectById(@PathVariable String projectId){
+        Project project = projectService.findProjectByIdentifier(projectId);
+        return new ResponseEntity<Project>(project,HttpStatus.OK);
+
+    }
+    @GetMapping("/all")
+    public Iterable<Project> getAllProjects(){
+        return projectService.findAllPojects();
+    }
+    @DeleteMapping("/{projectId}")
+    public ResponseEntity<?> deleteProject(@PathVariable String projectId){
+        projectService.deleteProjectByIdentifier(projectId);
+        return new ResponseEntity<String>("Project with project id '"+projectId+"' is deleted",HttpStatus.OK);
     }
 }

@@ -9,6 +9,10 @@ import javax.persistence.Id;
 @Repository
 public interface ProjectRepository extends CrudRepository<Project, Id> {
 
+    Project findByProjectIdentifier(String projectId);
+
+    @Override
+     Iterable<Project> findAll();
 
 }
 
